@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="form-container">
+    <h2>Prijava</h2>
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+    <form method="POST">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" name="email" id="email" required>
+        </div>
+        <div class="form-group">
+            <label for="password">Šifra:</label>
+            <input type="password" name="password" id="password" required>
+        </div>
+        <button type="submit">Prijavi se</button>
+    </form>
+    <p>Nemate nalog? <a href="{% url 'register' %}">Registrujte se</a></p>
+</div>
+{% endblock %}

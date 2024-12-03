@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="form-container">
+    <h2>Admin Login</h2>
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+    <form method="POST">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" name="email" id="email" required>
+        </div>
+        <button type="submit">Send OTP</button>
+    </form>
+</div>
+{% endblock %}

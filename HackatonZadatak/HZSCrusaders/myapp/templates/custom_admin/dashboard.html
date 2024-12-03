@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="dashboard-container">
+    <h2>Admin Dashboard</h2>
+    <div class="stats-container">
+        <div class="stat-card">
+            <h3>Ukupno korisnika</h3>
+            <p>{{ total_users }}</p>
+        </div>
+        <div class="stat-card">
+            <h3>Novi korisnici danas</h3>
+            <p>{{ new_users }}</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
