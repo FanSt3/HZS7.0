@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HZS Crusaders</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/formsProfile.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">
+            <a href="{% url 'home' %}">
+                <img src="/static/images/logo.png" alt="Logo" class="logo">
+            </a>
+        </div>
+        <div class="nav-links">
+            <a href="{% url 'home' %}">Početna</a>
+            <a href="{% url 'about' %}">O nama</a>
+            {% if user.is_authenticated %}
+                <a href="{% url 'profile' %}">Profil</a>
+                <a href="{% url 'logout' %}">Odjava</a>
+            {% else %}
+                <a href="{% url 'login' %}">Prijava</a>
+                <a href="{% url 'register' %}">Registracija</a>
+            {% endif %}
+        </div>
+        <div class="hamburger">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </nav>
+
+    <div class="content-wrapper">
+
+        
+        {% block content %}
+        {% endblock %}
+    </div>
+
+    <script src="/static/js/script.js"></script>
+</body>
+</html>
