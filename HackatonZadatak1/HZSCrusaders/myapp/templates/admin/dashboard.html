@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="admin-dashboard">
+    <div class="admin-sidebar">
+        <div class="admin-profile">
+            <div class="admin-avatar">
+                <i class="fas fa-user-shield"></i>
+            </div>
+            <div class="admin-info">
+                <p>{{ request.session.admin_email }}</p>
+                <span>Administrator</span>
+            </div>
+        </div>
+        <nav class="admin-nav">
+            <a href="#" class="active">
+                <i class="fas fa-users"></i>
+                Korisnici
+            </a>
+            <a href="{% url 'admin_logout' %}">
+                <i class="fas fa-sign-out-alt"></i>
+                Odjava
+            </a>
+        </nav>
+    </div>
+
+    <div class="admin-main">
+        <div class="admin-header">
+            <h2>Upravljanje Korisnicima</h2>
+            <div class="admin-actions">
+                <div class="search-box">
+                    <input type="text" id="userSearch" placeholder="Pretraži korisnike...">
+                    <i class="fas fa-search"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="users-table-container">
+            <table class="users-table">
+                <thead>
+                    <tr>
+                        <th>Korisničko ime</th>
+                        <th>Email</th>
+                        <th>Ime</th>
+                        <th>Prezime</th>
+                        <th>Datum registracije</th>
+                        <th>Akcije</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>{{ user.username }}</td>
+                        <td>{{ user.email }}</td>
+                        <td>{{ user.first_name }}</td>
+                        <td>{{ user.last_name }}</td>
+                        <td>{{ user.date_joined|date:"d.m.Y H:i" }}</td>
+                        <td>
+                            <button class="btn-delete" onclick="deleteUser('{{ user.id }}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div id="deleteModal" class="modal">
+    <div class="modal-content">
+        <h3>Potvrda brisanja</h3>
+        <p>Da li ste sigurni da želite da obrišete ovog korisnika?</p>
+        <div class="modal-actions">
+            <button id="confirmDelete" class="btn-danger">Obriši</button>
+            <button id="cancelDelete" class="btn-secondary">Otkaži</button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<link rel="stylesheet" href="/static/css/admin.css">
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let deleteUserId = null;
+const modal = document.getElementById('deleteModal');
+
+function deleteUser(userId) {
+    deleteUserId = userId;
+    modal.style.display = 'flex';
+}
+
+document.getElementById('confirmDelete').addEventListener('click', async () => {
+    try {
+        const response = await fetch(`/admin-panel/delete-user/${deleteUserId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        });
+        const data = await response.json();
+        
+        if (data.status === 'success') {
+            location.reload();
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+    modal.style.display = 'none';
+});
+
+document.getElementById('cancelDelete').addEventListener('click', () => {
+    modal.style.display = 'none';
+});
+
+document.getElementById('userSearch').addEventListener('input', function(e) {
+    const searchText = e.target.value.toLowerCase();
+    const rows = document.querySelectorAll('.users-table tbody tr');
+    
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(searchText) ? '' : 'none';
+    });
+});
+</script>
+{% endblock %}

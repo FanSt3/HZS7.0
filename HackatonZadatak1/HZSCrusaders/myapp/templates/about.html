@@ -1,12 +1,73 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HZS Crusaders | O nama</title>
-    <link rel="stylesheet" href="oNama.css">
-</head>
-<body>
+{% extends "base.html" %}
+
+{% block content %}
+<div class="about-container">
+    <div class="about-header">
+        <h1>Naš Tim</h1>
+        <p>Upoznajte ljude koji čine Coding Crusaders posebnim!</p>
+    </div>
     
-</body>
-</html>
+    <div class="team-members">
+        <div class="member-card">
+            <div class="member-image">
+                <img src="/media/Stefan.png" alt="Član tima 1">
+            </div>
+            <h3>Stefan Jovišić</h3>
+            <p class="member-role">Full Stack Dev i kapiten</p>
+            <p class="member-description">Iskusni trener sa preko 10 godina iskustva u radu sa mladim sportistima.</p>
+        </div>
+
+        <div class="member-card">
+            <div class="member-image">
+                <img src="/media/Mateja.png" alt="Član tima 2">
+            </div>
+            <h3>Mateja Milivojev</h3>
+            <p class="member-role">Full Stack Dev</p>
+            <p class="member-description">Specijalista za fizičku pripremu sa diplomom Fakulteta sporta.</p>
+        </div>
+
+        <div class="member-card">
+            <div class="member-image">
+                <img src="/media/Danilo.png" alt="Član tima 3">
+            </div>
+            <h3>Danilo Milovanović</h3>
+            <p class="member-role">Nutricionista</p>
+            <p class="member-description">Stručnjak za sportsku ishranu sa međunarodnim sertifikatima.</p>
+        </div>
+
+        <div class="member-card">
+            <div class="member-image">
+                <img src="/media/Roman.png" alt="Član tima 4">
+            </div>
+            <h3>Roman Herceg Terzić</h3>
+            <p class="member-role">Ne znam</p>
+            <p class="member-description">Specijalista za sportske povrede i rehabilitaciju.</p>
+        </div>
+    </div>
+</div>
+
+<footer class="footer">
+    <div class="footer-content">
+        <div class="footer-section">
+            <h4>HZS Crusaders</h4>
+            <p>Vaš put ka uspehu</p>
+        </div>
+        <div class="footer-section">
+            <h4>Kontakt</h4>
+            <p>Email: info@hzscrusaders.com</p>
+            <p>Tel: +381 11 123 456</p>
+        </div>
+        <div class="footer-section">
+            <h4>Pratite nas</h4>
+            <div class="social-links">
+                <a href="#">Facebook</a>
+                <a href="#">Instagram</a>
+                <a href="#">Twitter</a>
+            </div>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <p>&copy; 2024 HZS Crusaders. Sva prava zadržana.</p>
+    </div>
+</footer>
+{% endblock %}

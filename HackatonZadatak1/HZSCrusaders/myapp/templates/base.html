@@ -5,7 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HZS Crusaders</title>
     <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/oNama.css">
     <link rel="stylesheet" href="/static/css/formsProfile.css">
+    {% block extra_css %}{% endblock %}
 </head>
 <body>
     <nav class="navbar">
@@ -19,6 +21,9 @@
             <a href="{% url 'about' %}">O nama</a>
             {% if user.is_authenticated %}
                 <a href="{% url 'profile' %}">Profil</a>
+                {% if user.email in ADMIN_EMAILS %}
+                    <a href="{% url 'admin_login' %}">Admin Panel</a>
+                {% endif %}
                 <a href="{% url 'logout' %}">Odjava</a>
             {% else %}
                 <a href="{% url 'login' %}">Prijava</a>
@@ -40,5 +45,6 @@
     </div>
 
     <script src="/static/js/script.js"></script>
+    {% block extra_js %}{% endblock %}
 </body>
 </html>
