@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}HZS Crusaders{% endblock %}</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/admin_dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'css/animations.css' %}">
+    <link rel="stylesheet" href="{% static 'css/course_content.css' %}">
+    <link rel="stylesheet" href="{% static 'css/formsProfile.css' %}">
+    <link rel="stylesheet" href="{% static 'css/oNama.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">
+            <a href="{% url 'home' %}">
+                <img src="/media/llogo.png" style="width: 50px; height: 50px;" alt="Logo" class="logo">
+            </a>
+        </div>
+        
+        <div class="nav-links" id="navLinks">
+            <a href="{% url 'home' %}" class="nav-item">Početna</a>
+            
+            {% if user.is_authenticated %}
+                <div class="nav-dropdown">
+                    <a href="#" class="nav-item">Kursevi <i class="fas fa-chevron-down"></i></a>
+                    <div class="dropdown-content">
+                        <a href="{% url 'home' %}#popular-courses">Popularni kursevi</a>
+                        <a href="{% url 'home' %}#newest-courses">Novi kursevi</a>
+                        {% if user.profile.is_instructor %}
+                        <a href="#">Moji kursevi</a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+            
+            <a href="{% url 'about' %}" class="nav-item">O nama</a>
+            
+            {% if user.is_authenticated %}
+                {% if user.is_staff %}
+                <div class="nav-dropdown">
+                    <a href="#" class="nav-item">Admin Panel <i class="fas fa-chevron-down"></i></a>
+                    <div class="dropdown-content">
+                        <a href="{% url 'admin_dashboard' %}">Dashboard</a>
+                        <a href="{% url 'admin_users' %}">Users</a>
+                        <a href="{% url 'admin_courses' %}">Courses</a>
+                        <a href="{% url 'admin_course_create' %}">Add Course</a>
+                        <a href="{% url 'admin_logout' %}">Logout</a>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="nav-dropdown">
+                    <a href="#" class="nav-item">
+                        <img src="{{ user.profile.image.url }}" alt="Profile" class="nav-profile-img">
+                        {{ user.first_name }} <i class="fas fa-chevron-down"></i>
+                    </a>
+                    <div class="dropdown-content">
+                        <a href="{% url 'profile' %}">Profil</a>
+                        <a href="{% url 'profile' %}">Moji kursevi</a>
+                        <a href="{% url 'logout' %}" class="logout-link">Odjava</a>
+                    </div>
+                </div>
+            {% else %}
+                <a href="{% url 'login' %}" class="nav-item">Prijava</a>
+                <a href="{% url 'register' %}" class="nav-item btn-primary">Registracija</a>
+            {% endif %}
+        </div>
+        
+        <button class="hamburger" onclick="toggleNav()">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+    </nav>
+
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+    
+    {% block scripts %}{% endblock %}
+</body>
+</html>

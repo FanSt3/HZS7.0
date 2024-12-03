@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="course-detail-container">
+    <div class="course-header">
+        <div class="course-info">
+            <h1>{{ course.title }}</h1>
+            <div class="course-meta">
+                <span class="instructor">
+                    <i class="fas fa-user"></i> 
+                    {{ course.instructor.get_full_name }}
+                </span>
+                <span class="topic">
+                    <i class="fas fa-folder"></i> 
+                    {{ course.topic.name }}
+                </span>
+                <span class="language">
+                    <i class="fas fa-globe"></i> 
+                    {{ course.get_language_display }}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="course-layout">
+        <div class="main-content">
+            <div class="course-preview">
+                <div class="course-image-container">
+                    {% if course.image %}
+                        <img src="{{ course.image.url }}" alt="{{ course.title }}">
+                    {% else %}
+                        <img src="{% static 'images/default-course.jpg' %}" alt="{{ course.title }}">
+                    {% endif %}
+                </div>
+                
+                <div class="course-stats">
+                    <div class="rating-box">
+                        <div class="rating-stars">
+                            {% for i in "12345"|make_list %}
+                                {% if forloop.counter <= course.avg_rating|default:0|floatformat:"0" %}
+                                    <span class="filled">★</span>
+                                {% else %}
+                                    <span class="empty">☆</span>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        <span class="rating-count">{{ course.rating_count }} ocena</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="course-description">
+                <h2>O kursu</h2>
+                {{ course.description|linebreaks }}
+            </div>
+
+            <div class="course-reviews">
+                <h2>Komentari i ocene</h2>
+                {% if user.is_authenticated %}
+                    <div class="review-form-container">
+                        <form method="POST" action="{% url 'submit_course_rating' course.slug %}" class="review-form">
+                            {% csrf_token %}
+                            <div class="rating-input">
+                                <label>Vaša ocena:</label>
+                                <div class="star-rating">
+                                    {% for i in "12345"|make_list reversed %}
+                                        <input type="radio" name="rating" value="{{ forloop.revcounter }}" id="star{{ forloop.counter }}" required>
+                                        <label for="star{{ forloop.counter }}" class="star-label">★</label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <textarea name="comment" placeholder="Napišite vaš komentar (opciono)" class="review-textarea"></textarea>
+                            <button type="submit" class="btn-submit">Pošalji ocenu</button>
+                        </form>
+                    </div>
+                {% endif %}
+
+                <div class="reviews-list">
+                    {% for review in course.courserating_set.all %}
+                        <div class="review-card" data-review-id="{{ review.id }}">
+                            <div class="review-header">
+                                <div class="reviewer-info">
+                                    <div class="reviewer-avatar">
+                                        {% if review.user.profile.avatar %}
+                                            <img src="{{ review.user.profile.avatar.url }}" alt="{{ review.user.get_full_name }}">
+                                        {% else %}
+                                            <div class="avatar-placeholder">{{ review.user.get_full_name|first }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="reviewer-details">
+                                        <span class="reviewer-name">{{ review.user.get_full_name }}</span>
+                                        <span class="review-date">{{ review.created_at|date:"d.m.Y H:i" }}</span>
+                                    </div>
+                                </div>
+                                <div class="review-actions">
+                                    <div class="review-rating">
+                                        {% for i in "12345" %}
+                                            {% if forloop.counter <= review.rating %}
+                                                <span class="filled">★</span>
+                                            {% else %}
+                                                <span class="empty">☆</span>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                    {% if user.is_staff or review.user == user %}
+                                        <button class="btn-delete-review" onclick="deleteReview({{ review.id }})">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% if review.comment %}
+                                <p class="review-comment">{{ review.comment }}</p>
+                            {% endif %}
+                        </div>
+                    {% empty %}
+                        <p class="no-reviews">Još uvek nema komentara. Budite prvi koji će ostaviti komentar!</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="course-sidebar">
+            <div class="enrollment-card">
+                <div class="price-tag">
+                    {% if course.is_free %}
+                        <span class="price free">Besplatno</span>
+                    {% else %}
+                        <span class="price">{{ course.price }} RSD</span>
+                    {% endif %}
+                </div>
+                {% if user.is_authenticated %}
+                    {% if user in course.enrolled_students.all %}
+                        <a href="{% url 'course_content' course.slug %}" class="btn-enroll">Nastavi učenje</a>
+                    {% else %}
+                        <form method="POST" action="{% url 'enroll_course' course.slug %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-enroll">Upiši kurs</button>
+                        </form>
+                    {% endif %}
+                {% else %}
+                    <a href="{% url 'login' %}?next={{ request.path }}" class="btn-enroll">Prijavi se za upis</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function deleteReview(reviewId) {
+    if (confirm('Da li ste sigurni da želite da obrišete ovaj komentar?')) {
+        fetch(`/course/review/${reviewId}/delete/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                const reviewCard = document.querySelector(`[data-review-id="${reviewId}"]`);
+                reviewCard.remove();
+            }
+        });
+    }
+}
+</script>
+{% endblock %}

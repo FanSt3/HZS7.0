@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="course-content-container">
+    <div class="content-header">
+        <h2>{{ course.title }} - Content Management</h2>
+        <button onclick="addSection()" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Add Section
+        </button>
+    </div>
+
+    <form method="POST" class="content-form">
+        {% csrf_token %}
+        <div id="sections-container">
+            {% for section in sections %}
+            <div class="section-item">
+                <div class="section-header">
+                    <input type="text" name="section_title[]" value="{{ section.title }}" placeholder="Section Title" required>
+                    <button type="button" onclick="removeSection(this)" class="btn-danger">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+                
+                <div class="lessons-container">
+                    {% for lesson in section.lesson_set.all %}
+                    <div class="lesson-item">
+                        <input type="text" name="lesson_title[{{ forloop.parentloop.counter0 }}][]" 
+                               value="{{ lesson.title }}" placeholder="Lesson Title" required>
+                        <input type="url" name="lesson_video[{{ forloop.parentloop.counter0 }}][]" 
+                               value="{{ lesson.video_url }}" placeholder="Video URL">
+                        <textarea name="lesson_content[{{ forloop.parentloop.counter0 }}][]" 
+                                  placeholder="Lesson Content">{{ lesson.content }}</textarea>
+                        <button type="button" onclick="removeLesson(this)" class="btn btn-danger">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <button type="button" onclick="addLesson(this)" class="btn btn-success">
+                    <i class="fas fa-plus"></i> Add Lesson
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+            <a href="{% url 'admin_courses' %}" class="btn btn-secondary">Back to Courses</a>
+        </div>
+    </form>
+</div>
+
+<template id="section-template">
+    <div class="section-item">
+        <div class="section-header">
+            <input type="text" name="section_title[]" placeholder="Section Title" required>
+            <button type="button" onclick="removeSection(this)" class="btn-danger">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+        <div class="lessons-container"></div>
+        <button type="button" onclick="addLesson(this)" class="btn-secondary">
+            <i class="fas fa-plus"></i> Add Lesson
+        </button>
+    </div>
+</template>
+
+<template id="lesson-template">
+    <div class="lesson-item">
+        <input type="text" name="lesson_title[]" placeholder="Lesson Title" required>
+        <input type="url" name="lesson_video[]" placeholder="Video URL">
+        <textarea name="lesson_content[]" placeholder="Lesson Content"></textarea>
+        <button type="button" onclick="removeLesson(this)" class="btn btn-danger">
+            <i class="fas fa-trash"></i>
+        </button>
+    </div>
+</template>
+
+
+<script>
+function addSection() {
+    const template = document.getElementById('section-template');
+    const clone = template.content.cloneNode(true);
+    document.getElementById('sections-container').appendChild(clone);
+}
+
+function addLesson(button) {
+    const sectionItem = button.closest('.section-item');
+    const sectionIndex = Array.from(document.querySelectorAll('.section-item')).indexOf(sectionItem);
+    const lessonsContainer = sectionItem.querySelector('.lessons-container');
+    
+    const template = document.getElementById('lesson-template');
+    const clone = template.content.cloneNode(true);
+    
+    // Update input names to include section index
+    clone.querySelector('input[name="lesson_title[]"]').name = `lesson_title[${sectionIndex}][]`;
+    clone.querySelector('input[name="lesson_video[]"]').name = `lesson_video[${sectionIndex}][]`;
+    clone.querySelector('textarea[name="lesson_content[]"]').name = `lesson_content[${sectionIndex}][]`;
+    
+    lessonsContainer.appendChild(clone);
+}
+
+function removeSection(button) {
+    if (confirm('Are you sure you want to delete this section and all its lessons?')) {
+        button.closest('.section-item').remove();
+    }
+}
+
+function removeLesson(button) {
+    if (confirm('Are you sure you want to delete this lesson?')) {
+        button.closest('.lesson-item').remove();
+    }
+}
+</script>
+{% endblock %} 

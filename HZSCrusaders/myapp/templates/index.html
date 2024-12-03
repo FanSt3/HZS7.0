@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<main class="main-content">
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="floating-circle"></div>
+        <div class="hero-content">
+            <h1>Unapredite svoje znanje</h1>
+            <p>Učite od stručnjaka iz oblasti tehnologije i razvoja</p>
+            <div class="search-container">
+                <form action="{% url 'search_courses' %}" method="GET" class="search-form">
+                    <input type="text" name="q" placeholder="Šta želite da naučite?" value="{{ request.GET.q }}">
+                    <button type="submit">Pretraži<i class="fas fa-search"></i></button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Topics Section -->
+    <section class="topics-section">
+        <h2>Popularne oblasti</h2>
+        <div class="topics-grid">
+            {% for topic in topics %}
+            <a href="{% url 'search_courses' %}?topics={{ topic.id }}" class="topic-card">
+                <i class="{{ topic.icon|default:'fas fa-book' }}"></i>
+                <h3>{{ topic.name }}</h3>
+                <p>{{ topic.course_count }} kurseva</p>
+            </a>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- Popular Courses Section -->
+    <section class="courses-section">
+        <div class="section-header">
+            <h2>Popularni kursevi</h2>
+            <a href="{% url 'search_courses' %}?sort=rating" class="view-all">Pogledaj sve</a>
+        </div>
+        <div class="course-grid">
+            {% if popular_courses %}
+                {% for course in popular_courses %}
+                    <div class="course-card">
+                        <div class="course-image">
+                            {% if course.image %}
+                                <img src="{{ course.image.url }}" alt="{{ course.title }}">
+                            {% else %}
+                                <img src="{% static 'images/default-course.jpg' %}" alt="{{ course.title }}">
+                            {% endif %}
+                            {% if course.is_free %}
+                                <span class="course-badge free">Besplatno</span>
+                            {% endif %}
+                        </div>
+                        <div class="course-content">
+                            <div class="course-topic">{{ course.topic.name }}</div>
+                            <h3>{{ course.title }}</h3>
+                            <p class="instructor">
+                                <i class="fas fa-user"></i>
+                                {{ course.instructor.get_full_name }}
+                            </p>
+                            <div class="course-meta">
+                                <div class="rating">
+                                    <div class="stars">
+                                        {% with stars=course.avg_rating|default:0|floatformat:"0" %}
+                                            {% for i in "12345" %}
+                                                {% if forloop.counter <= stars %}★{% else %}☆{% endif %}
+                                            {% endfor %}
+                                        {% endwith %}
+                                    </div>
+                                    <span class="rating-count">({{ course.rating_count }})</span>
+                                </div>
+                                {% if not course.is_free %}
+                                    <div class="price">{{ course.price }} RSD</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <a href="{% url 'course_detail' course.slug %}" class="card-link"></a>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p class="no-courses">Trenutno nema dostupnih kurseva.</p>
+            {% endif %}
+        </div>
+    </section>
+</main>
+{% endblock %}

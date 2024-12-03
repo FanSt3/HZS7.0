@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% csrf_token %}
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <h2>My Courses</h2>
+        <a href="{% url 'admin_course_create' %}" class="btn-primary">
+            <i class="fas fa-plus"></i> Create New Course
+        </a>
+    </div>
+
+    <div class="courses-grid">
+        {% for course in courses %}
+        <div class="course-card" data-course-slug="{{ course.slug }}">
+            <div class="course-image">
+                {% if course.image %}
+                    <img src="{{ course.image.url }}" alt="{{ course.title }}">
+                {% endif %}
+                <div class="course-status {{ course.status }}">
+                    {{ course.get_status_display }}
+                </div>
+            </div>
+            
+            <div class="course-info">
+                <h3>{{ course.title }}</h3>
+                <div class="course-meta">
+                    <span><i class="fas fa-users"></i> {{ course.enrolled_students.count }} students</span>
+                    <span><i class="fas fa-star"></i> {{ course.avg_rating|default:"No ratings" }}</span>
+                </div>
+                
+                <div class="course-stats">
+                    <div class="stat">
+                        <span class="label">Sections:</span>
+                        <span class="value">{{ course.coursesection_set.count }}</span>
+                    </div>
+                    <div class="stat">
+                        <span class="label">Lessons:</span>
+                        <span class="value">{{ course.get_total_lessons }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="course-actions">
+                <a href="{% url 'admin_course_edit' course.slug %}" class="btn-edit">
+                    <i class="fas fa-edit"></i> Edit
+                </a>
+                <a href="{% url 'admin_course_content' course.slug %}" class="btn-content">
+                    <i class="fas fa-book"></i> Content
+                </a>
+                <button onclick="deleteCourse('{{ course.slug }}')" class="btn-delete">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+            </div>
+        </div>
+        {% empty %}
+        <div class="no-courses">
+            <i class="fas fa-book-open"></i>
+            <p>You haven't created any courses yet</p>
+            <a href="{% url 'admin_course_create' %}" class="btn-primary">Create Your First Course</a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+function deleteCourse(slug) {
+    if (confirm('Are you sure you want to delete this course? This action cannot be undone.')) {
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        
+        fetch(`/custom-admin/course/${slug}/delete/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.status === 'success') {
+                const courseCard = document.querySelector(`[data-course-slug="${slug}"]`);
+                if (courseCard) {
+                    courseCard.remove();
+                    window.location.reload(); // Refresh the page to update the course list
+                }
+            } else {
+                throw new Error(data.message || 'Unknown error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error deleting course: ' + error.message);
+        });
+    }
+}
+</script>
+
+{% endblock %} 

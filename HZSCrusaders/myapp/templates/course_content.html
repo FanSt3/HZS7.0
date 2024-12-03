@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="course-container">
+    <div class="course-header">
+        <div class="header-content">
+            <h1>{{ course.title }}</h1>
+            <div class="course-progress">
+                <div class="progress-bar">
+                    <div class="progress" style="width: {{ progress }}%"></div>
+                </div>
+                <span class="progress-text">{{ progress }}% completed</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="course-layout">
+        <!-- Main Content Area -->
+        <div class="content-area">
+            <div id="video-container">
+                <!-- Video player will be inserted here -->
+            </div>
+            <div class="lesson-details">
+                <div id="lesson-title" class="lesson-title"></div>
+                <div id="lesson-content" class="lesson-content"></div>
+                <button id="complete-button" class="btn-complete" style="display: none;" 
+                        onclick="completeCurrentLesson()">
+                    <i class="fas fa-check-circle"></i> Mark as Complete
+                </button>
+            </div>
+        </div>
+
+        <!-- Right Sidebar -->
+        <div class="course-sidebar">
+            <div class="sidebar-header">
+                <h3>Course Content</h3>
+                <div class="course-stats">
+                    <span>{{ sections|length }} sections</span> • 
+                    <span>{{ total_lessons }} lectures</span>
+                </div>
+            </div>
+            <div class="sections-list">
+                {% for section in sections %}
+                <div class="section">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <span class="section-number">Section {{ forloop.counter }}</span>
+                            <h4>{{ section.title }}</h4>
+                        </div>
+                        <div class="section-info">
+                            <span>{{ section.lesson_set.count }} lectures</span>
+                        </div>
+                    </div>
+                    <ul class="lessons">
+                        {% for lesson in section.lesson_set.all %}
+                        <li class="lesson {% if lesson.id in completed_lessons %}completed{% endif %}" 
+                            data-lesson-id="{{ lesson.id }}">
+                            <button class="lesson-link" onclick="toggleLesson({{ lesson.id }})">
+                                <div class="lesson-info">
+                                    <i class="fas fa-book"></i>
+                                    <span class="lesson-title">{{ lesson.title }}</span>
+                                </div>
+                                <div class="lesson-meta">
+                                    {% with video_count=lesson.videos.all|length %}
+                                    <span class="video-count">{{ video_count }} video{{ video_count|pluralize }}</span>
+                                    {% endwith %}
+                                    {% if lesson.id in completed_lessons %}
+                                    <i class="fas fa-check-circle completed-icon"></i>
+                                    {% endif %}
+                                </div>
+                            </button>
+                            <div class="lesson-videos">
+                                {% for video in lesson.videos.all %}
+                                <div class="video-item" 
+                                     data-video-url="{{ video.url }}"
+                                     onclick="playVideo('{{ video.url }}', this)">
+                                    <i class="fas fa-play-circle"></i>
+                                    <span>{{ video.title }}</span>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentLessonId = null;
+
+function showLesson(lessonId) {
+    const lessonElement = document.querySelector(`[data-lesson-id="${lessonId}"]`);
+    currentLessonId = lessonId;
+    
+    // Update active state
+    document.querySelectorAll('.lesson').forEach(l => l.classList.remove('active'));
+    lessonElement.classList.add('active');
+    
+    // Update video
+    const videoUrl = lessonElement.dataset.videoUrl;
+    const videoContainer = document.getElementById('video-container');
+    if (videoUrl) {
+        videoContainer.innerHTML = `<iframe src="${videoUrl}" frameborder="0" allowfullscreen></iframe>`;
+        videoContainer.style.display = 'block';
+    } else {
+        videoContainer.style.display = 'none';
+    }
+    
+    // Update content
+    const title = lessonElement.querySelector('.lesson-title').textContent;
+    const content = lessonElement.dataset.content;
+    document.getElementById('lesson-title').textContent = title;
+    document.getElementById('lesson-content').innerHTML = content;
+    
+    // Show/hide complete button
+    const isCompleted = lessonElement.classList.contains('completed');
+    const completeButton = document.getElementById('complete-button');
+    completeButton.style.display = isCompleted ? 'none' : 'block';
+}
+
+function completeCurrentLesson() {
+    if (!currentLessonId) return;
+    
+    fetch(`/complete-lesson/${currentLessonId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            location.reload();
+        }
+    });
+}
+
+// Show first lesson by default
+document.addEventListener('DOMContentLoaded', function() {
+    const firstLesson = document.querySelector('.lesson');
+    if (firstLesson) {
+        const firstLessonId = firstLesson.dataset.lessonId;
+        showLesson(firstLessonId);
+    }
+});
+</script>
+
+{% endblock %} 
