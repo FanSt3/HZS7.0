@@ -7,7 +7,8 @@ Kako bi se projekat pokrenuo, neophodno je posedovati **Python** i par eksternih
 
 Flask   
 Flask_SQLAlchemy   
-Flask_SocketIO    
+Flask_SocketIO
+Flask_Login
 Django   
 Requests     
 timedelta
