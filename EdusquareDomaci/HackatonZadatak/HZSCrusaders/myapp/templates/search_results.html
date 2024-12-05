@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="search-page">
+    <div class="search-header">
+        <div class="search-container">
+            <form action="{% url 'search_courses' %}" method="GET" class="search-form">
+                <input type="text" name="q" placeholder="Šta želite da naučite?" value="{{ request.GET.q }}">
+                <button type="submit"><i class="fas fa-search"></i></button>
+            </form>
+        </div>
+    </div>
+    
+    <div class="search-content">
+        <div class="search-filters">
+            <div class="filter-section">
+                <h3>Filteri</h3>
+                <form method="GET" id="filterForm">
+                    <input type="hidden" name="q" value="{{ request.GET.q }}">
+                    
+                    <div class="filter-group">
+                        <h4>Sortiraj po</h4>
+                        <select name="sort" onchange="this.form.submit()">
+                            <option value="relevance" {% if sort == 'relevance' %}selected{% endif %}>Relevantnost</option>
+                            <option value="rating" {% if sort == 'rating' %}selected{% endif %}>Najviše ocenjeni</option>
+                            <option value="newest" {% if sort == 'newest' %}selected{% endif %}>Najnoviji</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <div class="filter-header" data-target="oblast-filter">
+                            <h4>Oblast</h4>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="filter-content" id="oblast-filter">
+                            <div class="loading-spinner hidden">
+                                <i class="fas fa-spinner fa-spin"></i>
+                            </div>
+                            <div class="filter-options"></div>
+                        </div>
+                    </div>
+
+                    <div class="filter-group">
+                        <h4>Cena</h4>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="is_free" value="1" 
+                                   {% if is_free %}checked{% endif %}
+                                   onchange="this.form.submit()">
+                            Besplatni kursevi
+                        </label>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="search-results">
+            <div class="results-header">
+                <h2>{{ courses.count }} rezultata za "{{ query }}"</h2>
+            </div>
+
+            <div class="course-list">
+                {% for course in courses %}
+                <div class="course-card">
+                    <div class="course-image">
+                        {% if course.image %}
+                            <img src="{{ course.image.url }}" alt="{{ course.title }}">
+                        {% else %}
+                            <img src="{% static 'images/default-course.jpg' %}" alt="{{ course.title }}">
+                        {% endif %}
+                    </div>
+                    <div class="course-details">
+                        <h3>{{ course.title }}</h3>
+                        <p class="course-topic">{{ course.topic.name }}</p>
+                        <div class="course-meta">
+                            <div class="rating">
+                                <div class="stars">
+                                    {% with stars=course.rating_average|default:0|floatformat:"0" %}
+                                        {% for i in "12345" %}
+                                            {% if forloop.counter <= stars|add:"0" %}★{% else %}☆{% endif %}
+                                        {% endfor %}
+                                    {% endwith %}
+                                    <span>({{ course.rating_count }})</span>
+                                </div>
+                            </div>
+                            <div class="price">
+                                {% if course.is_free %}
+                                    <span class="free">Besplatno</span>
+                                {% else %}
+                                    {{ course.price }} RSD
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <a href="{% url 'course_detail' course.slug %}" class="card-link"></a>
+                </div>
+                {% empty %}
+                <div class="no-results">
+                    <p>Nema pronađenih kurseva za "{{ query }}"</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const filterHeaders = document.querySelectorAll('.filter-header');
+    let topicsLoaded = false;
+    
+    // Get currently selected topics from URL params
+    const urlParams = new URLSearchParams(window.location.search);
+    const selectedTopics = urlParams.getAll('topics');
+    
+    filterHeaders.forEach(header => {
+        header.addEventListener('click', async function() {
+            const content = this.nextElementSibling;
+            const targetId = this.dataset.target;
+            
+            // Toggle active class on header
+            this.classList.toggle('active');
+            
+            if (targetId === 'oblast-filter') {
+                if (!topicsLoaded) {
+                    const spinner = content.querySelector('.loading-spinner');
+                    const optionsContainer = content.querySelector('.filter-options');
+                    
+                    // Show loading spinner
+                    spinner.classList.remove('hidden');
+                    
+                    try {
+                        const response = await fetch('/api/topics/');
+                        if (!response.ok) throw new Error('Network response was not ok');
+                        
+                        const topics = await response.json();
+                        
+                        const topicsHtml = topics.map(topic => `
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="topics" value="${topic.id}"
+                                       ${selectedTopics.includes(topic.id.toString()) ? 'checked' : ''}
+                                       onchange="document.getElementById('filterForm').submit()">
+                                ${topic.name}
+                            </label>
+                        `).join('');
+                        
+                        optionsContainer.innerHTML = topicsHtml;
+                        topicsLoaded = true;
+                    } catch (error) {
+                        console.error('Error loading topics:', error);
+                        optionsContainer.innerHTML = '<p class="error">Greška pri učitavanju oblasti</p>';
+                    } finally {
+                        spinner.classList.add('hidden');
+                    }
+                }
+            }
+            
+            // Handle animation smoothly
+            requestAnimationFrame(() => {
+                if (content.classList.contains('show')) {
+                    content.style.maxHeight = '0';
+                    content.classList.remove('show');
+                } else {
+                    content.classList.add('show');
+                    content.style.maxHeight = content.scrollHeight + 'px';
+                }
+            });
+        });
+    });
+});
+</script>
+{% endblock %} 

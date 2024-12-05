@@ -1,0 +1,367 @@
+/* Hero Section */
+.hero-section {
+    position: relative;
+    padding: 4rem 2rem;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    overflow: hidden;
+}
+
+.hero-content {
+    max-width: 800px;
+    margin: 0 auto;
+    text-align: center;
+    position: relative;
+    z-index: 2;
+}
+
+.hero-content h1 {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+}
+
+.hero-content p {
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+    opacity: 0.9;
+}
+
+/* Topics Section */
+.topics-section {
+    padding: 4rem 1rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.topics-section h2 {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.topics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    padding: 0 1rem;
+    align-items: start;
+}
+
+.topic-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+    padding: 2rem;
+    background: white;
+    border-radius: 8px;
+    box-shadow: var(--shadow-sm);
+    text-decoration: none;
+    color: var(--text-primary);
+    transition: var(--transition);
+}
+
+.topic-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+}
+
+.topic-card i {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
+
+.topic-card:hover i {
+    color: inherit;
+}
+
+.topic-card h3 {
+    margin-bottom: 0.5rem;
+    text-align: center;
+}
+
+.topic-card p {
+    color: var(--text-secondary);
+    text-align: center;
+}
+
+/* Courses Section */
+.courses-section {
+    padding: 4rem 1rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding: 0 1rem;
+}
+
+.course-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 2rem;
+    padding: 0 1rem;
+}
+
+/* Hero Section Search */
+.search-container {
+    max-width: 600px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.search-form {
+    display: flex;
+    align-items: center;
+    background: white;
+    border-radius: 8px;
+    padding: 0.5rem;
+    box-shadow: var(--shadow-md);
+    width: 100%;
+    gap: 0.5rem;
+}
+
+.search-form input {
+    flex: 1;
+    border: none;
+    outline: none;
+    padding: 0.75rem;
+    font-size: 1rem;
+    min-width: 0; /* Prevents input from overflowing */
+}
+
+.search-form button {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: var(--transition);
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: fit-content;
+}
+
+.search-form button:hover {
+    background: #1557b0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .hero-section {
+        padding: 3rem 1rem;
+    }
+
+    .hero-content h1 {
+        font-size: 2rem;
+    }
+
+    .topics-grid {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+
+    .course-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+    .search-form {
+        padding: 0.5rem;
+    }
+
+    .search-form input {
+        padding: 0.5rem;
+    }
+
+    .search-form button {
+        padding: 0.5rem 1rem;
+    }
+
+    .search-form button i {
+        margin: 0; /* Remove icon margin on mobile */
+    }
+}
+
+/* Popular Courses Section */
+.popular-courses {
+    padding: 4rem 1rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.popular-courses-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding: 0 1rem;
+}
+
+.popular-courses-header h2 {
+    font-size: 2rem;
+    color: var(--text-primary);
+}
+
+.popular-courses-header a {
+    color: var(--primary-color);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: var(--transition);
+}
+
+.popular-courses-header a:hover {
+    color: #1557b0;
+}
+
+.courses-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+    padding: 0 1rem;
+}
+
+.course-card {
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+    position: relative;
+}
+
+.course-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+}
+
+.course-image {
+    position: relative;
+    height: 200px;
+    overflow: hidden;
+}
+
+.course-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.course-topic {
+    font-size: 0.75rem;
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    font-weight: 500;
+    margin-bottom: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    display: inline-block;
+}
+
+.course-details {
+    padding: 1.5rem;
+}
+
+.course-details h3 {
+    margin: 0 0 1rem;
+    font-size: 1.25rem;
+    color: var(--text-primary);
+}
+
+.instructor {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+}
+
+.instructor i {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    flex-shrink: 0;  /* Prevents icon from shrinking */
+}
+
+.instructor span {
+    white-space: nowrap;  /* Keeps name on one line */
+    overflow: hidden;
+    text-overflow: ellipsis;  /* Adds ... if name is too long */
+}
+
+.course-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.rating {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.stars {
+    color: #ffc107;
+}
+
+.price {
+    font-weight: bold;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+}
+
+.price.free {
+    color: var(--secondary-color);
+}
+
+@media (max-width: 768px) {
+    .courses-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .popular-courses-header {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+}
+
+/* Add this to your existing course card styles */
+.course-card {
+    position: relative;  /* Ensure this is set for absolute positioning of child */
+}
+
+.card-link {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1;
+}
+
+/* Ensure interactive elements stay clickable */
+.course-meta *,
+.course-topic,
+.course-actions * {
+    position: relative;
+    z-index: 2;
+}
+
+/* Add hover effect */
+.course-card:hover .course-topic {
+    transform: translateY(-1px);
+    transition: all 0.3s ease;
+}

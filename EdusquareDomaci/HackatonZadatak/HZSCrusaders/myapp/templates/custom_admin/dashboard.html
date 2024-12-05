@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <h1 class="dashboard-title">Admin Dashboard</h1>
+        
+        <div class="dashboard-actions">
+            <a href="{% url 'admin_course_create' %}" class="action-button">
+                <i class="fas fa-plus"></i> Kreirajte novi kurs
+            </a>
+            <a href="{% url 'admin_users' %}" class="action-button">
+                <i class="fas fa-user-plus"></i> Dodajte novog korisnika
+            </a>
+        </div>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-title">Ukupan broj korisnika`</div>
+            <div class="stat-value">{{ total_users }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-title">Ukupan broj kurseva</div>
+            <div class="stat-value">{{ total_courses }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-title">Aktivni učenici</div>
+            <div class="stat-value">{{ active_students }}</div>
+        </div>
+    </div>
+
+    <div class="management-section">
+        <h2>Najnovije aktivnosti</h2>
+        <table class="management-table">
+            <thead>
+                <tr>
+                    <th>Korisnik</th>
+                    <th>Akcija</th>
+                    <th>Obriši</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for activity in recent_activities %}
+                <tr>
+                    <td>{{ activity.user }}</td>
+                    <td>{{ activity.action }}</td>
+                    <td>{{ activity.date }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

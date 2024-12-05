@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="dashboard-container">
+    <h2>Upravljanje korisničkim nalozima</h2>
+    
+    <a href="{% url 'admin_user_create' %}" class="btn-primary">
+        <i class="fas fa-plus"></i> Dodajte novi korisnički nalog
+    </a>
+
+    <div class="users-table-container">
+        <table class="users-table">
+            <thead>
+                <tr>
+                    <th>Informacije</th>
+                    <th>Email</th>
+                    <th>Status</th>
+                    <th>Datum pridruživanja</th>
+                    <th>Akcije</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td class="user-info-cell">
+                        <div class="user-avatar-container">
+                            {% if user.profile.image and user.profile.image.url %}
+                                <img src="{{ user.profile.image.url }}" 
+                                     alt="" 
+                                     class="user-avatar"
+                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                                     loading="lazy">
+                                <div class="avatar-fallback" style="display: none;">
+                                    {{ user.get_full_name|first|upper }}
+                                </div>
+                            {% else %}
+                                <div class="avatar-fallback">
+                                    {{ user.get_full_name|first|upper }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="user-details">
+                            <span class="user-name">{{ user.get_full_name }}</span>
+                            <span class="username">@{{ user.profile.username }}</span>
+                        </div>
+                    </td>
+                    <td>{{ user.email }}</td>
+                    <td>
+                        {% if user.is_active %}
+                            <span class="status-active">Aktivan</span>
+                        {% else %}
+                            <span class="status-inactive">Neaktivan</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ user.date_joined|date:"d.m.Y" }}</td>
+                    <td class="actions-cell">
+                        <a href="{% url 'admin_user_edit' user.id %}" class="btn-edit">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <button class="btn-delete" onclick="deleteUser({{ user.id }})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+.user-info-cell {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.user-avatar-container {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+}
+
+.user-avatar {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.avatar-fallback {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: var(--primary-color);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 500;
+}
+
+.user-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.user-name {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.username {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+</style>
+{% endblock %} 

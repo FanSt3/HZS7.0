@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HZS Crusaders</title>
+    {% load static %}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    <link rel="stylesheet" href="{% static 'css/index.css' %}">
+    <link rel="stylesheet" href="{% static 'css/course_detail.css' %}">
+    <link rel="stylesheet" href="{% static 'css/course_content.css' %}">
+    <link rel="stylesheet" href="{% static 'css/about.css' %}">
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'css/profile.css' %}">
+    <link rel="stylesheet" href="{% static 'css/search.css' %}">
+    <link rel="stylesheet" href="{% static 'css/course_content_admin.css' %}">
+</head>
+<body>
+    <div class="page-transition"></div>
+    <div class="fade-in">
+        <nav class="navbar">
+            <div class="nav-brand">
+                <a href="{% url 'home' %}">
+                    <img src="/media/llogo.png" style="width: 50px; height: 50px;" alt="Logo" class="logo">
+                </a>
+            </div>
+            
+            <div class="nav-links" id="navLinks">
+                <a href="{% url 'home' %}" class="nav-item">Početna</a>
+                
+                {% if user.is_authenticated %}
+                    <div class="nav-dropdown">
+                        <a href="#" class="nav-item">Kursevi <i class="fas fa-chevron-down"></i></a>
+                        <div class="dropdown-content">
+                            <a href="{% url 'search_courses' %}?sort=newest">Novi kursevi</a>
+                            <a href="{% url 'search_courses' %}?sort=rating">Popularni kursevi</a>
+                            {% if user.profile.is_instructor %}
+                            <a href="#">Moji kursevi</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endif %}
+                
+                <a href="{% url 'about' %}" class="nav-item">O nama</a>
+                
+                {% if user.is_authenticated %}
+                    {% if user.is_staff %}
+                    <div class="nav-dropdown">
+                        <a href="#" class="nav-item">Admin Panel <i class="fas fa-chevron-down"></i></a>
+                        <div class="dropdown-content">
+                            <a href="{% url 'admin_dashboard' %}">Kontrolna tabla</a>
+                            <a href="{% url 'admin_users' %}">Korisnici</a>
+                            <a href="{% url 'admin_courses' %}">Kursevi</a>
+                            <a href="{% url 'admin_course_create' %}">Napravite kurs</a>
+                            <a href="{% url 'admin_logout' %}">Odjava</a>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="nav-dropdown">
+                        <a href="#" class="nav-item">
+                            {% if user.profile.avatar %}
+                                <img src="{{ user.profile.avatar.url }}" alt="Profil" class="nav-profile-img">
+                            {% else %}
+                                <div class="nav-profile-img avatar-fallback">{{ user.first_name|first|upper }}</div>
+                            {% endif %}
+                            {{ user.first_name }} <i class="fas fa-chevron-down"></i>
+                        </a>
+                        <div class="dropdown-content">
+                            <a href="{% url 'profile' %}">Profil</a>
+                            <a href="{% url 'profile' %}">Moji kursevi</a>
+                            <a href="{% url 'logout' %}" class="logout-link">Odjava</a>
+                        </div>
+                    </div>
+                {% else %}
+                    <a href="{% url 'login' %}" class="nav-item">Prijava</a>
+                    <a href="{% url 'register' %}" class="nav-item btn-primary">Registracija</a>
+                {% endif %}
+            </div>
+            
+            <button class="hamburger" onclick="toggleNav()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </nav>
+
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% block content %}
+        {% endblock %}
+    </div>
+
+    <script>
+    function toggleNav() {
+        const navLinks = document.getElementById('navLinks');
+        const hamburger = document.querySelector('.hamburger');
+        const body = document.body;
+        
+        navLinks.classList.toggle('active');
+        hamburger.classList.toggle('active');
+        body.classList.toggle('nav-open');
+    }
+
+    // Close menu when clicking outside
+    document.addEventListener('click', function(event) {
+        const navLinks = document.getElementById('navLinks');
+        const hamburger = document.querySelector('.hamburger');
+        
+        if (navLinks.classList.contains('active') && 
+            !event.target.closest('#navLinks') && 
+            !event.target.closest('.hamburger')) {
+            navLinks.classList.remove('active');
+            hamburger.classList.remove('active');
+            document.body.classList.remove('nav-open');
+        }
+    });
+
+    // Handle dropdown clicks in mobile menu
+    document.querySelectorAll('.nav-dropdown').forEach(dropdown => {
+        const dropdownButton = dropdown.querySelector('.nav-item');
+        
+        dropdownButton.addEventListener('click', function(e) {
+            if (window.innerWidth <= 768) {
+                e.preventDefault();
+                dropdown.classList.toggle('active');
+                e.stopPropagation();
+            }
+        });
+
+        // Allow clicks on dropdown items
+        const dropdownLinks = dropdown.querySelectorAll('.dropdown-content a');
+        dropdownLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent the click from bubbling up
+            });
+        });
+    });
+    </script>
+    <script src="{% static 'js/profile.js' %}"></script>
+</body>
+</html>

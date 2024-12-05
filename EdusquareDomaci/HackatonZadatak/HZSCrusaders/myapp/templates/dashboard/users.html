@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <h1 class="dashboard-title">Upravljanje korisničkim nalozima</h1>
+        <div class="dashboard-actions">
+            <a href="{% url 'admin_add_user' %}" class="action-button">
+                <i class="fas fa-user-plus"></i> Dodajte novi korisnički nalog
+            </a>
+        </div>
+    </div>
+
+    <div class="users-table-container">
+        <table class="users-table">
+            <thead>
+                <tr>
+                    <th>Informacije</th>
+                    <th>Email</th>
+                    <th>Status</th>
+                    <th>Datum pridruživanja</th>
+                    <th>Akcije</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td class="user-info-cell">
+                        <div class="user-avatar-container">
+                            {% if user.profile.image and user.profile.image.url %}
+                                <img src="{{ user.profile.image.url }}" 
+                                     alt="" 
+                                     class="user-avatar"
+                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                                     loading="lazy">
+                                <div class="avatar-fallback" style="display: none;">
+                                    {{ user.get_full_name|first|upper }}
+                                </div>
+                            {% else %}
+                                <div class="avatar-fallback">
+                                    {{ user.get_full_name|first|upper }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="user-details">
+                            <span class="user-name">{{ user.get_full_name }}</span>
+                            <span class="username">@{{ user.username }}</span>
+                        </div>
+                    </td>
+                    <td>{{ user.email }}</td>
+                    <td>
+                        {% if user.is_superuser %}
+                            <span class="status-badge admin">Admin</span>
+                        {% elif user.is_staff %}
+                            <span class="status-badge staff">Predavač</span>
+                        {% else %}
+                            <span class="status-badge student">Učenik</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ user.date_joined|date:"M d, Y" }}</td>
+                    <td class="actions-cell">
+                        {% if not user.is_superuser and user != request.user %}
+                        <button class="btn-icon delete" onclick="deleteUser({{ user.id }})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+function deleteUser(userId) {
+    if (confirm('Are you sure you want to delete this user?')) {
+        fetch(`/custom-admin/users/${userId}/delete/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                location.reload();
+            }
+        });
+    }
+}
+</script>
+{% endblock %}

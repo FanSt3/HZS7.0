@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="course-container">
+    <div class="course-header">
+        <h1>{{ course.title }}</h1>
+    </div>
+
+    <div class="course-layout">
+        <div class="course-sidebar">
+            <div class="sections-list">
+                {% for section in sections %}
+                <div class="section">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <span class="section-number">Oblast {{ forloop.counter }}:</span>
+                            <h3>{{ section.title }}</h3>
+                        </div>
+                        <div class="section-info">
+                            <span>{{ section.lesson_set.count }} lekcije</span>
+                        </div>
+                    </div>
+                    <ul class="lessons">
+                        {% for lesson in section.lesson_set.all %}
+                        <li class="lesson {% if lesson.id in completed_lessons %}completed{% endif %}" 
+                            data-lesson-id="{{ lesson.id }}"
+                            data-video-url="{{ lesson.video_url }}"
+                            data-content="{{ lesson.content|escapejs }}">
+                            <button class="lesson-link" onclick="showLesson({{ lesson.id }})">
+                                <div class="lesson-info">
+                                    <i class="fas fa-play-circle"></i>
+                                    <span class="lesson-title">{{ lesson.title }}</span>
+                                </div>
+                                {% if lesson.id in completed_lessons %}
+                                <i class="fas fa-check-circle completed-icon"></i>
+                                {% endif %}
+                            </button>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div id="video-container" class="video-container">
+                <!-- Video will be loaded here -->
+            </div>
+            <div class="lesson-details">
+                <div id="lesson-title" class="lesson-title"></div>
+                <div id="lesson-content" class="lesson-content"></div>
+                <button id="complete-button" class="btn-complete" style="display: none;" 
+                        onclick="completeCurrentLesson()">
+                    Označi kao završeno
+                </button>
+            </div>
+            <div class="help-button-container">
+                <a href="https://localhost:5000/" class="help-button" target="_blank">
+                    <i class="fas fa-question-circle"></i>
+                    Potrebna pomoć?
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentLessonId = null;
+
+function showLesson(lessonId) {
+    const lessonElement = document.querySelector(`[data-lesson-id="${lessonId}"]`);
+    currentLessonId = lessonId;
+    
+    // Update active state
+    document.querySelectorAll('.lesson').forEach(l => l.classList.remove('active'));
+    lessonElement.classList.add('active');
+    
+    // Update video
+    const videoUrl = lessonElement.dataset.videoUrl;
+    const videoContainer = document.getElementById('video-container');
+    if (videoUrl) {
+        videoContainer.innerHTML = `<iframe src="${videoUrl}" frameborder="0" allowfullscreen></iframe>`;
+        videoContainer.style.display = 'block';
+    } else {
+        videoContainer.style.display = 'none';
+    }
+    
+    // Update content
+    const title = lessonElement.querySelector('.lesson-title').textContent;
+    const content = lessonElement.dataset.content;
+    document.getElementById('lesson-title').textContent = title;
+    document.getElementById('lesson-content').innerHTML = content;
+    
+    // Show/hide complete button
+    const isCompleted = lessonElement.classList.contains('completed');
+    const completeButton = document.getElementById('complete-button');
+    completeButton.style.display = isCompleted ? 'none' : 'block';
+}
+
+function completeCurrentLesson() {
+    if (!currentLessonId) return;
+    
+    fetch(`/complete-lesson/${currentLessonId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            location.reload();
+        }
+    });
+}
+
+// Show first lesson by default
+document.addEventListener('DOMContentLoaded', function() {
+    const firstLesson = document.querySelector('.lesson');
+    if (firstLesson) {
+        const firstLessonId = firstLesson.dataset.lessonId;
+        showLesson(firstLessonId);
+    }
+});
+</script>
+
+{% endblock %} 

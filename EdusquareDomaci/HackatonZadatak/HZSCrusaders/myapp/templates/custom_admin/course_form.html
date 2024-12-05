@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="dashboard-container">
+    <h2>{{ course|yesno:"Izmena,Dodavanje novog" }} kursa</h2>
+    
+    <form method="POST" enctype="multipart/form-data" class="course-form">
+        {% csrf_token %}
+        
+        <!-- Basic Course Information -->
+        <div class="form-section">
+            <div class="form-group">
+                <label for="title">Naslov kursa:</label>
+                <input type="text" id="title" name="title" value="{{ course.title }}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="main-category">Kategorija:</label>
+                <select id="main-category" name="main-category" class="form-control" required>
+                    <option value="">Izaberite kategoriju</option>
+                    {% for code, name in main_categories.items %}
+                        <option value="{{ code }}" {% if course.topic.category == code %}selected{% endif %}>
+                            {{ name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="topic">Podkategorija:</label>
+                <select id="topic" name="topic" class="form-control" required>
+                    <option value="">Izaberite podkategoriju</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="language">Jezik:</label>
+                <select id="language" name="language" required>
+                    {% for code, name in language_choices %}
+                        <option value="{{ code }}">{{ name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="description">Opis:</label>
+                <textarea id="description" name="description" required>{{ course.description }}</textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="price">Cena:</label>
+                <input type="number" id="price" name="price" value="{{ course.price }}" min="0" step="0.01">
+            </div>
+
+            <div class="form-group">
+                <label for="image">Naslovna slika kursa:</label>
+                <input type="file" id="image" name="image" accept="image/*" {% if not course.image %}required{% endif %}>
+            </div>
+        </div>
+
+        <!-- Course Content Section -->
+        <div class="course-content">
+            <h3>Sadržaj kursa</h3>
+            <div class="sections-container">
+                <!-- Sections will be added here -->
+            </div>
+            <button type="button" class="btn-add-lesson" onclick="addSection()">+ Dodajte oblast</button>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn-primary">Izmeni kurs</button>
+            <a href="{% url 'admin_dashboard' %}" class="btn-secondary">Otkaži</a>
+        </div>
+    </form>
+</div>
+
+<!-- Templates -->
+<template id="section-template">
+    <div class="section-item">
+        <div class="section-header">
+            <input class="section-title" type="text" name="section_title[]" placeholder="Naziv oblasti" required>
+            <input type="hidden" name="section_order[]" value="">
+            <button type="button" onclick="removeSection(this)" class="btn-remove">×</button>
+        </div>
+        <div class="lessons-container">
+            <!-- Lessons will be added here -->
+        </div>
+        <button type="button" onclick="addLesson(this)" class="btn-add-lesson">+ Dodajte lekciju</button>
+    </div>
+</template>
+
+<template id="lesson-template">
+    <div class="lesson-item">
+        <input type="text" name="lesson_title[]" placeholder="Naziv lekcije" required>
+        <input type="text" name="lesson_video[]" placeholder="Video URL">
+        <textarea name="lesson_content[]" placeholder="Sadržaj lekcije"></textarea>
+        <input type="hidden" name="lesson_section[]" value="">
+        <button type="button" onclick="removeLesson(this)" class="btn-remove">×</button>
+    </div>
+</template>
+
+
+
+<script>
+const subcategories = {{ subcategories|safe }};
+const currentTopic = "{{ course.topic.name|default:'' }}";
+const currentCategory = "{{ course.topic.category|default:'' }}";
+
+function updateSubcategories() {
+    const mainCategory = document.getElementById('main-category').value || currentCategory;
+    const topicSelect = document.getElementById('topic');
+    
+    // Clear existing options
+    topicSelect.innerHTML = '<option value="">Izaberite podkategoriju</option>';
+    
+    if (mainCategory && subcategories[mainCategory]) {
+        subcategories[mainCategory].forEach(subcategory => {
+            const option = document.createElement('option');
+            option.value = subcategory;
+            option.textContent = subcategory;
+            if (subcategory === currentTopic) {
+                option.selected = true;
+            }
+            topicSelect.appendChild(option);
+        });
+    }
+}
+
+// Set initial values and update subcategories
+document.addEventListener('DOMContentLoaded', function() {
+    if (currentCategory) {
+        document.getElementById('main-category').value = currentCategory;
+        updateSubcategories();
+    }
+});
+
+// Update subcategories when main category changes
+document.getElementById('main-category').addEventListener('change', updateSubcategories);
+
+// Functions for sections and lessons
+let sectionCounter = 0;
+
+function addSection() {
+    const template = document.getElementById('section-template');
+    const container = document.querySelector('.sections-container');
+    const clone = template.content.cloneNode(true);
+    
+    sectionCounter++;
+    clone.querySelector('input[name="section_order[]"]').value = sectionCounter;
+    
+    container.appendChild(clone);
+}
+
+function addLesson(button) {
+    const sectionItem = button.closest('.section-item');
+    const sectionIndex = Array.from(document.querySelectorAll('.section-item')).indexOf(sectionItem);
+    const lessonsContainer = sectionItem.querySelector('.lessons-container');
+    
+    const template = document.getElementById('lesson-template');
+    const clone = template.content.cloneNode(true);
+    
+    // Update the names to include section index
+    clone.querySelector('input[name="lesson_title[]"]').name = `lesson_title[${sectionIndex}][]`;
+    clone.querySelector('input[name="lesson_video[]"]').name = `lesson_video[${sectionIndex}][]`;
+    clone.querySelector('textarea[name="lesson_content[]"]').name = `lesson_content[${sectionIndex}][]`;
+    
+    lessonsContainer.appendChild(clone);
+}
+
+function removeSection(button) {
+    button.closest('.section-item').remove();
+}
+
+function removeLesson(button) {
+    button.closest('.lesson-item').remove();
+}
+
+// Add initial section
+document.addEventListener('DOMContentLoaded', function() {
+    addSection();
+});
+</script>
+{% endblock %} 

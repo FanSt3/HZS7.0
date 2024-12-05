@@ -1,0 +1,31 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+
+{% endblock %}
+
+{% block content %}
+<div class="login-container">
+    <div id="header">
+        <h1>{% trans 'Admin Login' %}</h1>
+    </div>
+    
+    <form method="post" id="login-form">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="id_username">{% trans 'Username:' %}</label>
+            <input type="text" name="username" id="id_username" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="id_password">{% trans 'Password:' %}</label>
+            <input type="password" name="password" id="id_password" required>
+        </div>
+        
+        <input type="hidden" name="next" value="{{ next }}">
+        
+        <button type="submit">{% trans 'Log in' %}</button>
+    </form>
+</div>
+{% endblock %}

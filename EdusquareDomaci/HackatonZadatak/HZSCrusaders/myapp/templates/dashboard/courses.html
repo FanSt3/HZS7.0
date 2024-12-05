@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard-container">
+    {% csrf_token %}
+    <div class="dashboard-header">
+        <h2>Moji kursevi</h2>
+        <a href="{% url 'admin_course_create' %}" class="create-course-btn">
+            <i class="fas fa-plus"></i>Kreirajte novi kurs
+        </a>
+    </div>
+
+    {% if courses %}
+    <div class="courses-grid">
+        {% for course in courses %}
+        <div class="course-card">
+            <div class="course-image">
+                {% if course.image %}
+                    <img src="{{ course.image.url }}" alt="{{ course.title }}">
+                {% else %}
+                    <div class="placeholder-image">
+                        <i class="fas fa-book"></i>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="course-info">
+                <h3>{{ course.title }}</h3>
+                <div class="course-meta">
+                    <span><i class="fas fa-users"></i> {{ course.enrolled_students.count }} učenika</span>
+                    <span><i class="fas fa-star"></i> {{ course.rating_average|default:"No ratings"|floatformat:1 }}</span>
+                </div>
+                <div class="course-stats">
+                    <div class="stat">
+                        <span class="label">Oblasti</span>
+                        <span class="value">{{ course.sections.count }}</span>
+                    </div>
+                    <div class="stat">
+                        <span class="label">Lekcije</span>
+                        <span class="value">{{ course.total_lessons }}</span>
+                    </div>
+                </div>
+                <div class="course-actions">
+                    <a href="{% url 'admin_course_edit' course.slug %}" class="btn-edit">
+                        <i class="fas fa-edit"></i> Uredi
+                    </a>
+                    <a href="{% url 'admin_course_content' course.slug %}" class="btn-content">
+                        <i class="fas fa-list"></i> Sadržaj
+                    </a>
+                    <button class="btn-delete" onclick="deleteCourse('{{ course.slug }}')">
+                        <i class="fas fa-trash"></i> Obriši
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="no-courses">
+        <i class="fas fa-book"></i>
+        <p>Ni jedan kurs nije dodat.</p>
+        <a href="{% url 'admin_course_create' %}" class="btn-primary">Kreirajte prvi kurs</a>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function deleteCourse(slug) {
+    if (confirm('Da li ste sigurni da želite da obrišete ovaj kurs?')) {
+        // Get CSRF token from cookie
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        
+        fetch(`/custom-admin/course/${slug}/delete/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrftoken,
+                'Content-Type': 'application/json',
+            },
+            credentials: 'same-origin'
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.status === 'success') {
+                window.location.reload();
+            } else {
+                alert('Greška prilikom brisanja kursa: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Došlo je do greške prilikom brisanja kursa. Molimo pokušajte ponovo.');
+        });
+    }
+}
+</script>
+{% endblock %} 

@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="chat-layout">
+    <div class="channels-sidebar" id="sidebar">
+        <div class="course-name">
+            <h3>{{ course_title }}</h3>
+        </div>
+        <div class="channels-list">
+            <div class="channel-category">
+                <span class="channel-category-name">KANALI</span>
+                <a href="{{ url_for('chat', group_id=group_id, channel='general') }}" 
+                   class="channel-item {% if current_channel == 'general' %}active{% endif %}">
+                    <span class="channel-hash">#</span> glavno
+                </a>
+                <a href="{{ url_for('chat', group_id=group_id, channel='help') }}"
+                   class="channel-item {% if current_channel == 'help' %}active{% endif %}">
+                    <span class="channel-hash">#</span> potrebna-pomoc
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <button class="toggle-sidebar d-md-none" onclick="toggleSidebar()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-list" viewBox="0 0 16 16">
+            <path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/>
+        </svg>
+    </button>
+
+    <div class="chat-container">
+        <div class="messages" id="messages">
+            {% for message in messages %}
+            <div class="message {% if message.user_id == current_user.id %}message-own{% endif %}">
+                <div class="message-header">
+                    <span class="sender-name">
+                        {% if message.user_id == current_user.id %}
+                            Vi
+                        {% else %}
+                            {{ get_user_name(message.user_id) }}
+                        {% endif %}
+                    </span>
+                    <span class="message-time">{{ message.timestamp.strftime('%H:%M') }}</span>
+                </div>
+                <div class="message-content">{{ message.content }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="message-input">
+            <form id="message-form">
+                <div class="input-group">
+                    <input type="text" id="message" class="form-control" placeholder="Unesite poruku...">
+                    <button type="submit" class="btn btn-primary">Pošalji</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+<script>
+    const socket = io();
+    const group_id = {{ group_id }};
+    
+    socket.emit('join', {group_id: group_id});
+    
+    document.getElementById('message-form').onsubmit = function(e) {
+        e.preventDefault();
+        const messageInput = document.getElementById('message');
+        const message = messageInput.value;
+        if (message.trim()) {
+            socket.emit('send_message', {message: message, group_id: group_id});
+            messageInput.value = '';
+        }
+    };
+    
+    socket.on('receive_message', function(data) {
+        const messagesDiv = document.getElementById('messages');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${data.user_id == {{ current_user.id }} ? 'message-own' : ''}`;
+        messageDiv.innerHTML = `
+            <div class="message-header">
+                <span class="sender-name">${data.user_id == {{ current_user.id }} ? 'Vi' : data.sender_name}</span>
+                <span class="message-time">${data.timestamp}</span>
+            </div>
+            <div class="message-content">${data.message}</div>
+        `;
+        messagesDiv.appendChild(messageDiv);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    });
+
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        sidebar.classList.toggle('show');
+    }
+
+    // Zatvori sidebar kada se klikne van njega na mobilnom
+    document.addEventListener('click', function(event) {
+        const sidebar = document.getElementById('sidebar');
+        const toggleBtn = document.querySelector('.toggle-sidebar');
+        if (!sidebar.contains(event.target) && !toggleBtn.contains(event.target) && window.innerWidth <= 768) {
+            sidebar.classList.remove('show');
+        }
+    });
+</script>
+{% endblock %}

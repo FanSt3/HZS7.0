@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="dashboard-container">
+    <h2>{{ course|yesno:"Izmeni, Dodaj novi" }} kurs</h2>
+    
+    <form method="POST" enctype="multipart/form-data" class="course-form">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="title">Naslov kursa:</label>
+            <input type="text" id="title" name="title" value="{{ course.title|default:'' }}" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="topic">Oblast:</label>
+            <select id="topic" name="topic" required>
+                {% for topic in topics %}
+                <option value="{{ topic.id }}" {% if course.topic_id == topic.id %}selected{% endif %}>
+                    {{ topic.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="description">Opis:</label>
+            <textarea id="description" name="description" required>{{ course.description|default:'' }}</textarea>
+        </div>
+        
+        <div class="form-group">
+            <label for="price">Cena (RSD):</label>
+            <input type="number" id="price" name="price" value="{{ course.price|default:'' }}" required>
+        </div>
+        
+        <div class="form-group checkbox">
+            <input type="checkbox" id="is_free" name="is_free" {% if course.is_free %}checked{% endif %}>
+            <label for="is_free">Besplatan kurs</label>
+        </div>
+        
+        <div class="form-group">
+            <label for="image">Slika kursa:</label>
+            {% if course.image %}
+            <img src="{{ course.image.url }}" alt="Current image" class="preview-image">
+            {% endif %}
+            <input type="file" id="image" name="image" accept="image/*" {% if not course %}required{% endif %}>
+        </div>
+        
+        <div class="form-actions">
+            <button type="submit" class="btn-primary">{{ course|yesno:"Sačuvaj izmene,Kreiraj kurs" }}</button>
+            <a href="{% url 'admin_dashboard' %}" class="btn-secondary">Odustani</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

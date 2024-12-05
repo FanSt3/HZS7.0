@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="courses-container">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="courses-header">
+                <h1 class="text-center mb-4">Vaši kursevi</h1>
+                <p class="text-center text-muted mb-4">Izaberite kurs za koji vam je potrebna pomoć ili zelite da se povežete sa ostalim učenicima</p>
+            </div>
+            <div class="course-list">
+                {% for course in courses %}
+                <div class="course-item" onclick="toggleChannels(this)">
+                    <div class="course-content">
+                        <h3 class="course-title">{{ course[1] }}</h3>
+                        <span class="course-arrow">→</span>
+                    </div>
+                    <div class="channels-dropdown">
+                        <a href="{{ url_for('chat', group_id=course[0], channel='general') }}" class="channel-link">
+                            <span class="channel-hash">#</span>
+                            <span>glavno</span>
+                        </a>
+                        <a href="{{ url_for('chat', group_id=course[0], channel='help') }}" class="channel-link">
+                            <span class="channel-hash">#</span>
+                            <span>potrebna-pomoc</span>
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleChannels(element) {
+    // Zatvori sve ostale dropdowne
+    document.querySelectorAll('.course-item.active').forEach(item => {
+        if (item !== element) {
+            item.classList.remove('active');
+            const items = document.querySelectorAll('.course-item');
+            items.forEach(i => i.style.transform = 'translateY(0)');
+        }
+    });
+    
+    // Toggle trenutni dropdown
+    element.classList.toggle('active');
+    
+    // Sačekaj da se dropdown otvori
+    setTimeout(() => {
+        const dropdownHeight = element.querySelector('.channels-dropdown').scrollHeight;
+        const courseItems = document.querySelectorAll('.course-item');
+        let shouldMove = false;
+        
+        courseItems.forEach(item => {
+            if (shouldMove) {
+                if (element.classList.contains('active')) {
+                    item.style.transform = `translateY(${dropdownHeight}px)`;
+                } else {
+                    item.style.transform = 'translateY(0)';
+                }
+            }
+            if (item === element) {
+                shouldMove = true;
+            }
+        });
+        
+        // Prilagodi visinu container-a
+        const coursesContainer = document.querySelector('.courses-container');
+        const courseList = document.querySelector('.course-list');
+        
+        // Izračunaj ukupnu visinu
+        const totalHeight = Array.from(courseItems).reduce((height, item) => {
+            return height + item.offsetHeight + 12; // 12px je margin-bottom
+        }, 0);
+        
+        // Dodaj padding i minimalni prostor
+        const minHeight = Math.max(window.innerHeight - 76, totalHeight + 100);
+        coursesContainer.style.minHeight = `${minHeight}px`;
+    }, 50);
+}
+
+// Zatvori dropdown kada se klikne van njega
+document.addEventListener('click', function(event) {
+    if (!event.target.closest('.course-item')) {
+        document.querySelectorAll('.course-item.active').forEach(item => {
+            item.classList.remove('active');
+        });
+        // Resetuj pozicije svih elemenata
+        document.querySelectorAll('.course-item').forEach(item => {
+            item.style.transform = 'translateY(0)';
+        });
+        
+        // Resetuj visinu container-a
+        const coursesContainer = document.querySelector('.courses-container');
+        coursesContainer.style.minHeight = 'calc(100vh - 76px)';
+    }
+});
+</script>
+{% endblock %}

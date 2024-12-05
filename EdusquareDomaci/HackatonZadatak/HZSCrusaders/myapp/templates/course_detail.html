@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="course-detail-container">
+    <div class="course-header">
+        <div class="course-info">
+            <div class="course-image">
+                {% if course.image %}
+                    <img src="{{ course.image.url }}" alt="{{ course.title }}">
+                {% else %}
+                    <img src="{% static 'images/default-course.jpg' %}" alt="{{ course.title }}">
+                {% endif %}
+            </div>
+            <div class="breadcrumbs">
+                <a href="{% url 'home' %}">Početna</a>
+                <span>/</span>
+                <a href="{% url 'search_courses' %}?topics={{ course.topic.id }}">{{ course.topic.name }}</a>
+            </div>
+            <h1>{{ course.title }}</h1>
+            <p class="course-description">{{ course.description }}</p>
+            <div class="course-meta">
+                <div class="meta-item">
+                    <i class="fas fa-user"></i> 
+                    <span>Predavač: {{ course.instructor.username }}</span>
+                </div>
+                <div class="meta-item">
+                    <i class="fas fa-clock"></i>
+                    <span>Trajanje: {{ course.duration }} časova</span>
+                </div>
+                <div class="meta-item">
+                    <i class="fas fa-users"></i>
+                    <span>Polaznici: {{ course.enrolled_students.count }}</span>
+                </div>
+                <div class="meta-item">
+                    <i class="fas fa-star"></i>
+                    <span>Ocena: {{ course.avg_rating|default:"Nema ocena" }}</span>
+                </div>
+            </div>
+        </div>
+        <div class="course-actions">
+            <div class="price-box">
+                {% if course.is_free %}
+                    <span class="price free">Besplatno</span>
+                {% else %}
+                    <span class="price">{{ course.price }} RSD</span>
+                {% endif %}
+            </div>
+            <div class="action-buttons">
+                {% if user.is_authenticated %}
+                    {% if user in course.enrolled_students.all %}
+                        <a href="{% url 'course_content' course.slug %}" class="btn-primary">Nastavi učenje</a>
+                    {% else %}
+                        <form method="POST" action="{% url 'enroll_course' course.slug %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-primary">Upiši kurs</button>
+                        </form>
+                    {% endif %}
+                {% else %}
+                    <a href="{% url 'login' %}?next={{ request.path }}" class="btn-primary">Prijavi se za upis</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% if course.learning_objectives.exists %}
+    <div class="content-section">
+        <h2>Šta ćete naučiti</h2>
+        <ul class="learning-objectives">
+            {% for objective in course.learning_objectives.all %}
+                <li><i class="fas fa-check"></i> {{ objective.description }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    {% if course.coursesection_set.exists %}
+    <div class="content-section">
+        <h2>Sadržaj kursa</h2>
+        <div class="course-curriculum">
+            {% for section in course.coursesection_set.all %}
+                <div class="curriculum-section">
+                    <div class="section-header">
+                        <h3>{{ section.title }}</h3>
+                        <span>{{ section.lesson_set.count }} lekcija</span>
+                    </div>
+                    <ul class="lesson-list">
+                        {% for lesson in section.lesson_set.all %}
+                            <li>
+                                <i class="fas fa-play-circle"></i>
+                                <span>{{ lesson.title }}</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="content-section reviews-section">
+        <h2>Recenzije ({{ course.reviews.count }})</h2>
+        <div class="average-rating">
+            <div class="stars">
+                {% with avg_rating=course.avg_rating|floatformat:"0" %}
+                    {% for i in "12345" %}
+                        {% if forloop.counter <= avg_rating|add:"0" %}
+                            <span class="star filled">★</span>
+                        {% else %}
+                            <span class="star">☆</span>
+                        {% endif %}
+                    {% endfor %}
+                {% endwith %}
+            </div>
+            <span class="rating-value">{{ course.avg_rating|floatformat:1 }}/5</span>
+        </div>
+
+        {% if user.is_authenticated and not user_review %}
+            <form method="POST" action="{% url 'add_review' course.slug %}" class="review-form">
+                {% csrf_token %}
+                <div class="rating-input">
+                    {% for i in "54321" %}
+                        <input type="radio" name="rating" value="{{ i }}" id="star{{ i }}" required>
+                        <label for="star{{ i }}">★</label>
+                    {% endfor %}
+                </div>
+                <textarea name="comment" placeholder="Vaš komentar..." required></textarea>
+                <button type="submit" class="btn-primary">Dodaj recenziju</button>
+            </form>
+        {% endif %}
+
+        <div class="reviews-list">
+            {% for review in course.reviews.all %}
+                <div class="review-card">
+                    <div class="review-header">
+                        <div class="reviewer-info">
+                            <div class="reviewer-avatar">
+                                {% if review.user.profile.avatar %}
+                                    <img src="{{ review.user.profile.avatar.url }}" alt="Profile">
+                                {% else %}
+                                    <div class="avatar-placeholder">{{ review.user.get_full_name|make_list|first }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="reviewer-details">
+                                <strong>{{ review.user.get_full_name }}</strong>
+                                <span class="review-date">{{ review.created_at|date:"d.m.Y" }}</span>
+                            </div>
+                        </div>
+                        <div class="review-rating">
+                            {% for i in "12345" %}
+                                {% if forloop.counter <= review.rating %}
+                                    <span class="star filled">★</span>
+                                {% else %}
+                                    <span class="star">☆</span>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <p class="review-comment">{{ review.comment }}</p>
+                    {% if user == review.user or user == course.instructor %}
+                        <form method="POST" action="{% url 'delete_review' review.id %}" class="delete-review-form">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-delete">
+                                <i class="fas fa-trash"></i>
+                                Ukloni recenziju
+                            </button>
+                        </form>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
