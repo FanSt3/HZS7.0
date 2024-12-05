@@ -24,3 +24,4 @@ timedelta
 :warning: **NAPOMENA**
 Postoji verovatnoća da Edusquare Chat neće raditi iz prvog pokušaja, zato što je u kodu definisana putanja do baze podataka iz drugog dela projekta i nju je potrebno izmeniti u fajlu  ``app.py``. U 10. liniju koda promeniti putanju do lokacije projekta.
 
+**Default login kredencijali za testiranje: hzs@admin.com:MiSmoHZS12345.**
